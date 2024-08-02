@@ -1,0 +1,23 @@
+services:
+  mc:
+    image: itzg/minecraft-server:java21
+    ports:
+      - "25565:25565"
+    environment:
+      # General Options
+      USE_AIKAR_FLAGS: true
+      MEMORY: 6G
+      # Server
+      EULA: true
+      VERSION: 1.20.1
+      ALLOW_FLIGHT: true
+      # CurseForge
+      MOD_PLATFORM: AUTO_CURSEFORGE
+      CF_API_KEY: ${CF_API_KEY} # allocate from https://console.curseforge.com/
+      CF_FORCE_SYNCHRONIZE: true
+      CF_SLUG: valhelsia-6
+    volumes:
+      - data:/data
+
+volumes:
+  data: {}
