@@ -1,0 +1,147 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  A configured Modded Minecraft server. This templates creates an ECS
+  service on Fargate capacity providers that uses the AWS VPC network
+  mode. The service auto-assigns an IP address in the public subnet.
+
+Parameters:
+  # ECS parameters
+  ClusterName: 
+    Type: String
+    Description: The name of the ECS Cluster.
+    Default: minecraft-cluster
+  ServiceName:
+    Type: String
+    Default: web
+    Description: A name for the service
+  ECSTaskExecutionRole:
+    Type: String
+    Description: The role used to start up an ECS task
+  LogGroupName:
+    Type: String
+    Description: The log group to which logs are sent
+
+  # Network parameters
+  AvailabilityZoneName:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Description: The availability zone to provision the EFS file system in
+    Default: us-east-1a
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: The VPC to launch the service in
+  PublicSubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: List of public subnet ID's to place the tasks
+
+
+Resources:
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Environment:
+            - Name: USE_AIKAR_FLAGS
+              Value: true
+            - Name: MEMORY
+              Value: 6G # TODO - parameterize
+            - Name: EULA
+              Value: true
+            - Name: VERSION
+              Value: 1.20.1 # TODO - parameterize
+            - Name: ALLOW_FLIGHT
+              Value: true
+            - Name: MOD_PLATFORM
+              Value: AUTO_CURSEFORGE
+            - Name: CF_FORCE_SYNCHRONIZE
+              Value: true
+            - Name: CF_SLUG
+              Value: valhelsia-6 # TODO - parameterize
+          HealthCheck:
+            Command:
+              - mc-health
+            Interval: 5
+            Retries: 24
+            StartPeriod: 60
+          Image: itzg/minecraft-server:java21 # TODO - parameterize
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroupName
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: !Ref ServiceName
+          MountPoints:
+            - ContainerPath: /data
+              SourceVolume: data
+          Name: !Ref ServiceName
+          PortMappings:
+            - ContainerPort: 25565
+              HostPort: 25565
+              Protocol: tcp
+          Secrets:
+            - Name: CF_API_KEY
+              ValueFrom: !Ref CFApiKey # TODO: parameterize
+    ExecutionRoleArn: !Ref ECSTaskExecutionRole
+    Family: !Ref ServiceName
+    NetworkMode: awsvpc
+    RequiresCompatibilities:
+      - FARGATE
+    Volumes:
+      - EFSVolumeConfiguration:
+          FilesystemId: !Ref FileSystem
+          RootDirectory: /data
+        Name: data
+
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ClusterName
+      DesiredCount: 1
+      EnableECSManagedTags: true
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - !Ref SecurityGroup
+          Subnets: 
+            - !Ref PublicSubnetId
+      PropagateTags: SERVICE
+      ServiceName: !Ref ServiceName
+      TaskDefinition: !Ref TaskDefinition
+
+  ServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for the minecraft service
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 25565
+          IpProtocol: tcp
+
+  FileSystem:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      AvailabilityZoneName: !Ref AvailabilityZoneName
+      FileSystemTags:
+        - Key: Name
+          Value: !Ref ServiceName
+        
+  MountTarget:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref FileSystem
+      SubnetId: !Ref PublicSubnetId
+      SecurityGroups:
+        - !Ref SecurityGroup
+    
+  MountTargetSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for the mount target
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        Description: Allow NFS traffic from the minecraft service
+        FromPort: 2049
+        SourceSecurityGroupId: !Ref ServiceSecurityGroup
+

@@ -1,12 +1,10 @@
 AWSTemplateFormatVersion: "2010-09-09"
-
-Description: "A ECS Cluster on Fargate that is used to run Minecraft Services."
+Description: "Creates an ECS Cluster with Fargate capacity providers."
 Parameters:
   ClusterName:
     Type: String
     Description: "The name of the ECS Cluster."
     Default: "minecraft-cluster"
-
 Resources:
   ECSCluster:
     Type: AWS::ECS::Cluster
@@ -17,7 +15,6 @@ Resources:
       ClusterSettings:
         - Name: containerInsights
           Value: enabled
-  
   # This is a role which is used within Fargate to allow the Fargate agent
   # to download images, and upload logs.
   ECSTaskExecutionRole:
@@ -41,3 +38,20 @@ Resources:
       # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/security-iam-awsmanpol.html#security-iam-awsmanpol-AmazonECSTaskExecutionRolePolicy
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+  
+  ServicesLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/ecs/${ClusterName}/services"
+      RetentionInDays: 7
+  
+Outputs:
+  ClusterName:
+    Description: The ECS cluster into which to launch resources
+    Value: ECSCluster
+  ECSTaskExecutionRole:
+    Description: The role used to start up a task
+    Value: ECSTaskExecutionRole
+  LogGroup:
+    Description: The log group to which logs are sent
+    Value: ServicesLogGroup
