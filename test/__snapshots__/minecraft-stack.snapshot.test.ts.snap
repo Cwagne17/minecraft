@@ -1,0 +1,1668 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`MinecraftStack snapshot test 1`] = `
+{
+  "Outputs": {
+    "BetterMcForgeBmc4EIP": {
+      "Description": "Better MC [FORGE] BMC4 server address",
+      "Value": {
+        "Ref": "BetterMcForgeBmc4EIP5B6CEC7C",
+      },
+    },
+    "CiscosAdventureRpgEIP": {
+      "Description": "Cisco's Adventure RPG server address",
+      "Value": {
+        "Ref": "CiscosAdventureRpgEIP9309C13D",
+      },
+    },
+    "DungeonsAndColoniesRpgEIP": {
+      "Description": "Dungeons & Colonies RPG server address",
+      "Value": {
+        "Ref": "DungeonsAndColoniesRpgEIP455D0B3E",
+      },
+    },
+    "FleetApiBase": {
+      "Description": "Fleet Manager API base URL",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "FleetManagerApiHttpApi8E0F49EE",
+            },
+            ".execute-api.us-east-1.amazonaws.com",
+          ],
+        ],
+      },
+    },
+    "FleetApiToken": {
+      "Description": "Fleet Manager API authentication token",
+      "Value": "kPS7vQiUfiFci4gQpjDLCT5ZxEyZmSoS",
+    },
+    "FleetManagerApiApiEndpoint8DEB0548": {
+      "Description": "Fleet Manager API endpoint",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "FleetManagerApiHttpApi8E0F49EE",
+            },
+            ".execute-api.us-east-1.amazonaws.com",
+          ],
+        ],
+      },
+    },
+    "FleetManagerApiApiTokenF2DE227B": {
+      "Description": "API authentication token",
+      "Value": "kPS7vQiUfiFci4gQpjDLCT5ZxEyZmSoS",
+    },
+    "HomesteadCozyEIP": {
+      "Description": "Homestead – Cozy server address",
+      "Value": {
+        "Ref": "HomesteadCozyEIP3CDA0528",
+      },
+    },
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValueawsserviceamiamazonlinuxlatestal2023amikernel61arm64C96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-arm64",
+      "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+    },
+  },
+  "Resources": {
+    "BetterMcForgeBmc4DataVolumeAttachmentB6DBDBCB": {
+      "Properties": {
+        "Device": "/dev/xvdb",
+        "InstanceId": {
+          "Ref": "BetterMcForgeBmc4Instance21D943DC",
+        },
+        "VolumeId": {
+          "Ref": "BetterMcForgeBmc4DataVolumeF72D668F",
+        },
+      },
+      "Type": "AWS::EC2::VolumeAttachment",
+    },
+    "BetterMcForgeBmc4DataVolumeF72D668F": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::GetAtt": [
+            "BetterMcForgeBmc4Instance21D943DC",
+            "AvailabilityZone",
+          ],
+        },
+        "Encrypted": true,
+        "MultiAttachEnabled": false,
+        "Size": 60,
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+        ],
+        "VolumeType": "gp3",
+      },
+      "Type": "AWS::EC2::Volume",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "BetterMcForgeBmc4EIP5B6CEC7C": {
+      "Properties": {
+        "Domain": "vpc",
+        "InstanceId": {
+          "Ref": "BetterMcForgeBmc4Instance21D943DC",
+        },
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::EIP",
+    },
+    "BetterMcForgeBmc4Instance21D943DC": {
+      "DependsOn": [
+        "BetterMcForgeBmc4InstanceRoleDefaultPolicyD62A9B83",
+        "BetterMcForgeBmc4InstanceRole3FA27554",
+      ],
+      "Properties": {
+        "AvailabilityZone": "dummy1a",
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "Encrypted": true,
+              "VolumeSize": 8,
+              "VolumeType": "gp3",
+            },
+          },
+        ],
+        "IamInstanceProfile": {
+          "Ref": "BetterMcForgeBmc4InstanceInstanceProfile66FF6FE0",
+        },
+        "ImageId": {
+          "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestal2023amikernel61arm64C96584B6F00A464EAD1953AFF4B05118Parameter",
+        },
+        "InstanceType": "t4g.small",
+        "SecurityGroupIds": [
+          {
+            "Fn::GetAtt": [
+              "BetterMcForgeBmc4SecurityGroupC231501D",
+              "GroupId",
+            ],
+          },
+        ],
+        "SubnetId": {
+          "Ref": "MinecraftVpcPublicSubnet1SubnetF714F8C3",
+        },
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+          {
+            "Key": "Name",
+            "Value": "TestMinecraftStack/BetterMcForgeBmc4/Instance",
+          },
+        ],
+        "UserData": {
+          "Fn::Base64": "#!/bin/bash
+echo "Waiting for volume to be attached..."
+while [ ! -e /dev/xvdb ]; do sleep 1; done
+sleep 5
+echo "Setting up data volume..."
+if ! blkid /dev/xvdb; then
+  mkfs -t ext4 /dev/xvdb
+fi
+mkdir -p /minecraft
+mount /dev/xvdb /minecraft
+echo "/dev/xvdb /minecraft ext4 defaults,nofail 0 2" >> /etc/fstab
+echo "Installing Docker..."
+dnf install -y docker
+systemctl enable docker
+systemctl start docker
+echo "Installing AWS CLI..."
+dnf install -y awscli
+echo "Fetching CurseForge API key from SSM..."
+CF_API_KEY=$(aws ssm get-parameter --name "/minecraft/curseforge/apiKey" --query Parameter.Value --output text --region us-east-1)
+echo "Starting Minecraft server container..."
+docker run -d --restart=always --name minecraft \\
+  -p 25565:25565 \\
+  -e EULA=TRUE \\
+  -e MEMORY=4G \\
+  -e TYPE="AUTO_CURSEFORGE" -e EULA="TRUE" -e MEMORY="8G" -e CF_PAGE_URL="https://www.curseforge.com/minecraft/modpacks/better-mc-forge-bmc4" \\
+  -e CF_API_KEY="$CF_API_KEY" \\
+  -v /minecraft:/data \\
+  itzg/minecraft-server
+echo "Minecraft server setup complete!"",
+        },
+      },
+      "Type": "AWS::EC2::Instance",
+    },
+    "BetterMcForgeBmc4InstanceInstanceProfile66FF6FE0": {
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "BetterMcForgeBmc4InstanceRole3FA27554",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::InstanceProfile",
+    },
+    "BetterMcForgeBmc4InstanceRole3FA27554": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ec2.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/AmazonSSMManagedInstanceCore",
+              ],
+            ],
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "BetterMcForgeBmc4InstanceRoleDefaultPolicyD62A9B83": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "ssm:GetParameter",
+              "Effect": "Allow",
+              "Resource": "arn:aws:ssm:us-east-1:123456789012:parameter/minecraft/curseforge/apiKey",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "BetterMcForgeBmc4InstanceRoleDefaultPolicyD62A9B83",
+        "Roles": [
+          {
+            "Ref": "BetterMcForgeBmc4InstanceRole3FA27554",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "BetterMcForgeBmc4SecurityGroupC231501D": {
+      "Properties": {
+        "GroupDescription": "Security group for Minecraft server",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow Minecraft traffic",
+            "FromPort": 25565,
+            "IpProtocol": "tcp",
+            "ToPort": 25565,
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+        ],
+        "VpcId": {
+          "Ref": "MinecraftVpc615F5BB1",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "CiscosAdventureRpgDataVolumeAttachment05A249AC": {
+      "Properties": {
+        "Device": "/dev/xvdb",
+        "InstanceId": {
+          "Ref": "CiscosAdventureRpgInstanceC60A2598",
+        },
+        "VolumeId": {
+          "Ref": "CiscosAdventureRpgDataVolumeB1B0AAC5",
+        },
+      },
+      "Type": "AWS::EC2::VolumeAttachment",
+    },
+    "CiscosAdventureRpgDataVolumeB1B0AAC5": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::GetAtt": [
+            "CiscosAdventureRpgInstanceC60A2598",
+            "AvailabilityZone",
+          ],
+        },
+        "Encrypted": true,
+        "MultiAttachEnabled": false,
+        "Size": 60,
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+        ],
+        "VolumeType": "gp3",
+      },
+      "Type": "AWS::EC2::Volume",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "CiscosAdventureRpgEIP9309C13D": {
+      "Properties": {
+        "Domain": "vpc",
+        "InstanceId": {
+          "Ref": "CiscosAdventureRpgInstanceC60A2598",
+        },
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::EIP",
+    },
+    "CiscosAdventureRpgInstanceC60A2598": {
+      "DependsOn": [
+        "CiscosAdventureRpgInstanceRoleDefaultPolicy4EF87716",
+        "CiscosAdventureRpgInstanceRole1A0EC136",
+      ],
+      "Properties": {
+        "AvailabilityZone": "dummy1a",
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "Encrypted": true,
+              "VolumeSize": 8,
+              "VolumeType": "gp3",
+            },
+          },
+        ],
+        "IamInstanceProfile": {
+          "Ref": "CiscosAdventureRpgInstanceInstanceProfile1D105C17",
+        },
+        "ImageId": {
+          "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestal2023amikernel61arm64C96584B6F00A464EAD1953AFF4B05118Parameter",
+        },
+        "InstanceType": "t4g.small",
+        "SecurityGroupIds": [
+          {
+            "Fn::GetAtt": [
+              "CiscosAdventureRpgSecurityGroup43BB7720",
+              "GroupId",
+            ],
+          },
+        ],
+        "SubnetId": {
+          "Ref": "MinecraftVpcPublicSubnet1SubnetF714F8C3",
+        },
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+          {
+            "Key": "Name",
+            "Value": "TestMinecraftStack/CiscosAdventureRpg/Instance",
+          },
+        ],
+        "UserData": {
+          "Fn::Base64": "#!/bin/bash
+echo "Waiting for volume to be attached..."
+while [ ! -e /dev/xvdb ]; do sleep 1; done
+sleep 5
+echo "Setting up data volume..."
+if ! blkid /dev/xvdb; then
+  mkfs -t ext4 /dev/xvdb
+fi
+mkdir -p /minecraft
+mount /dev/xvdb /minecraft
+echo "/dev/xvdb /minecraft ext4 defaults,nofail 0 2" >> /etc/fstab
+echo "Installing Docker..."
+dnf install -y docker
+systemctl enable docker
+systemctl start docker
+echo "Installing AWS CLI..."
+dnf install -y awscli
+echo "Fetching CurseForge API key from SSM..."
+CF_API_KEY=$(aws ssm get-parameter --name "/minecraft/curseforge/apiKey" --query Parameter.Value --output text --region us-east-1)
+echo "Starting Minecraft server container..."
+docker run -d --restart=always --name minecraft \\
+  -p 25565:25565 \\
+  -e EULA=TRUE \\
+  -e MEMORY=4G \\
+  -e TYPE="AUTO_CURSEFORGE" -e EULA="TRUE" -e MEMORY="8G" -e CF_PAGE_URL="https://www.curseforge.com/minecraft/modpacks/ciscos-adventure-rpg-ultimate" \\
+  -e CF_API_KEY="$CF_API_KEY" \\
+  -v /minecraft:/data \\
+  itzg/minecraft-server
+echo "Minecraft server setup complete!"",
+        },
+      },
+      "Type": "AWS::EC2::Instance",
+    },
+    "CiscosAdventureRpgInstanceInstanceProfile1D105C17": {
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "CiscosAdventureRpgInstanceRole1A0EC136",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::InstanceProfile",
+    },
+    "CiscosAdventureRpgInstanceRole1A0EC136": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ec2.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/AmazonSSMManagedInstanceCore",
+              ],
+            ],
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "CiscosAdventureRpgInstanceRoleDefaultPolicy4EF87716": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "ssm:GetParameter",
+              "Effect": "Allow",
+              "Resource": "arn:aws:ssm:us-east-1:123456789012:parameter/minecraft/curseforge/apiKey",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "CiscosAdventureRpgInstanceRoleDefaultPolicy4EF87716",
+        "Roles": [
+          {
+            "Ref": "CiscosAdventureRpgInstanceRole1A0EC136",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "CiscosAdventureRpgSecurityGroup43BB7720": {
+      "Properties": {
+        "GroupDescription": "Security group for Minecraft server",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow Minecraft traffic",
+            "FromPort": 25565,
+            "IpProtocol": "tcp",
+            "ToPort": 25565,
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+        ],
+        "VpcId": {
+          "Ref": "MinecraftVpc615F5BB1",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "DlmBackupsDlmRole95CAA479": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "dlm.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSDataLifecycleManagerServiceRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DlmBackupsPolicy186B1A15": {
+      "Properties": {
+        "Description": "Daily backup policy for Minecraft data volumes",
+        "ExecutionRoleArn": {
+          "Fn::GetAtt": [
+            "DlmBackupsDlmRole95CAA479",
+            "Arn",
+          ],
+        },
+        "PolicyDetails": {
+          "ResourceTypes": [
+            "VOLUME",
+          ],
+          "Schedules": [
+            {
+              "CopyTags": true,
+              "CreateRule": {
+                "CronExpression": "cron(0 3 * * ? *)",
+              },
+              "Name": "DailyBackup",
+              "RetainRule": {
+                "Count": 7,
+              },
+              "TagsToAdd": [
+                {
+                  "Key": "ManagedBy",
+                  "Value": "DLM",
+                },
+              ],
+            },
+          ],
+          "TargetTags": [
+            {
+              "Key": "MinecraftData",
+              "Value": "true",
+            },
+          ],
+        },
+        "State": "ENABLED",
+      },
+      "Type": "AWS::DLM::LifecyclePolicy",
+    },
+    "DungeonsAndColoniesRpgDataVolume0CA1C3C0": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::GetAtt": [
+            "DungeonsAndColoniesRpgInstanceD1B4F935",
+            "AvailabilityZone",
+          ],
+        },
+        "Encrypted": true,
+        "MultiAttachEnabled": false,
+        "Size": 50,
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+        ],
+        "VolumeType": "gp3",
+      },
+      "Type": "AWS::EC2::Volume",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "DungeonsAndColoniesRpgDataVolumeAttachment885C0867": {
+      "Properties": {
+        "Device": "/dev/xvdb",
+        "InstanceId": {
+          "Ref": "DungeonsAndColoniesRpgInstanceD1B4F935",
+        },
+        "VolumeId": {
+          "Ref": "DungeonsAndColoniesRpgDataVolume0CA1C3C0",
+        },
+      },
+      "Type": "AWS::EC2::VolumeAttachment",
+    },
+    "DungeonsAndColoniesRpgEIP455D0B3E": {
+      "Properties": {
+        "Domain": "vpc",
+        "InstanceId": {
+          "Ref": "DungeonsAndColoniesRpgInstanceD1B4F935",
+        },
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::EIP",
+    },
+    "DungeonsAndColoniesRpgInstanceD1B4F935": {
+      "DependsOn": [
+        "DungeonsAndColoniesRpgInstanceRoleDefaultPolicyA3717760",
+        "DungeonsAndColoniesRpgInstanceRole15A44A35",
+      ],
+      "Properties": {
+        "AvailabilityZone": "dummy1a",
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "Encrypted": true,
+              "VolumeSize": 8,
+              "VolumeType": "gp3",
+            },
+          },
+        ],
+        "IamInstanceProfile": {
+          "Ref": "DungeonsAndColoniesRpgInstanceInstanceProfile9B141B70",
+        },
+        "ImageId": {
+          "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestal2023amikernel61arm64C96584B6F00A464EAD1953AFF4B05118Parameter",
+        },
+        "InstanceType": "t4g.small",
+        "SecurityGroupIds": [
+          {
+            "Fn::GetAtt": [
+              "DungeonsAndColoniesRpgSecurityGroupCEB82C00",
+              "GroupId",
+            ],
+          },
+        ],
+        "SubnetId": {
+          "Ref": "MinecraftVpcPublicSubnet1SubnetF714F8C3",
+        },
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+          {
+            "Key": "Name",
+            "Value": "TestMinecraftStack/DungeonsAndColoniesRpg/Instance",
+          },
+        ],
+        "UserData": {
+          "Fn::Base64": "#!/bin/bash
+echo "Waiting for volume to be attached..."
+while [ ! -e /dev/xvdb ]; do sleep 1; done
+sleep 5
+echo "Setting up data volume..."
+if ! blkid /dev/xvdb; then
+  mkfs -t ext4 /dev/xvdb
+fi
+mkdir -p /minecraft
+mount /dev/xvdb /minecraft
+echo "/dev/xvdb /minecraft ext4 defaults,nofail 0 2" >> /etc/fstab
+echo "Installing Docker..."
+dnf install -y docker
+systemctl enable docker
+systemctl start docker
+echo "Installing AWS CLI..."
+dnf install -y awscli
+echo "Fetching CurseForge API key from SSM..."
+CF_API_KEY=$(aws ssm get-parameter --name "/minecraft/curseforge/apiKey" --query Parameter.Value --output text --region us-east-1)
+echo "Starting Minecraft server container..."
+docker run -d --restart=always --name minecraft \\
+  -p 25565:25565 \\
+  -e EULA=TRUE \\
+  -e MEMORY=4G \\
+  -e TYPE="AUTO_CURSEFORGE" -e EULA="TRUE" -e MEMORY="6G" -e CF_PAGE_URL="https://www.curseforge.com/minecraft/modpacks/dungeons-and-colonies-rpg" \\
+  -e CF_API_KEY="$CF_API_KEY" \\
+  -v /minecraft:/data \\
+  itzg/minecraft-server
+echo "Minecraft server setup complete!"",
+        },
+      },
+      "Type": "AWS::EC2::Instance",
+    },
+    "DungeonsAndColoniesRpgInstanceInstanceProfile9B141B70": {
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "DungeonsAndColoniesRpgInstanceRole15A44A35",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::InstanceProfile",
+    },
+    "DungeonsAndColoniesRpgInstanceRole15A44A35": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ec2.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/AmazonSSMManagedInstanceCore",
+              ],
+            ],
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DungeonsAndColoniesRpgInstanceRoleDefaultPolicyA3717760": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "ssm:GetParameter",
+              "Effect": "Allow",
+              "Resource": "arn:aws:ssm:us-east-1:123456789012:parameter/minecraft/curseforge/apiKey",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DungeonsAndColoniesRpgInstanceRoleDefaultPolicyA3717760",
+        "Roles": [
+          {
+            "Ref": "DungeonsAndColoniesRpgInstanceRole15A44A35",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "DungeonsAndColoniesRpgSecurityGroupCEB82C00": {
+      "Properties": {
+        "GroupDescription": "Security group for Minecraft server",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow Minecraft traffic",
+            "FromPort": 25565,
+            "IpProtocol": "tcp",
+            "ToPort": 25565,
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+        ],
+        "VpcId": {
+          "Ref": "MinecraftVpc615F5BB1",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "FleetManagerApiHandlerApiGatewayInvoke357338C0": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FleetManagerApiHandlerFFB1136C",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:execute-api:us-east-1:123456789012:",
+              {
+                "Ref": "FleetManagerApiHttpApi8E0F49EE",
+              },
+              "/*/*",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "FleetManagerApiHandlerFFB1136C": {
+      "DependsOn": [
+        "FleetManagerApiLambdaRoleDefaultPolicyF107761A",
+        "FleetManagerApiLambdaRoleE829074F",
+      ],
+      "Properties": {
+        "Code": {
+          "ZipFile": "
+const AWS = require('aws-sdk');
+const ec2 = new AWS.EC2();
+const net = require('net');
+
+const TOKEN = process.env.TOKEN;
+const ROUTE_TABLE = JSON.parse(process.env.ROUTE_TABLE);
+
+exports.handler = async (event) => {
+  console.log('Event:', JSON.stringify(event, null, 2));
+
+  // Check token
+  const token = event.headers['x-token'];
+  if (token !== TOKEN) {
+    return {
+      statusCode: 401,
+      body: JSON.stringify({ error: 'Unauthorized' }),
+    };
+  }
+
+  const method = event.requestContext.http.method;
+  const path = event.requestContext.http.path;
+  const pathParams = event.pathParameters || {};
+
+  try {
+    // Route: GET /servers
+    if (method === 'GET' && path === '/servers') {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ servers: Object.keys(ROUTE_TABLE) }),
+      };
+    }
+
+    // Extract server ID
+    const serverId = pathParams.id;
+    if (!serverId || !ROUTE_TABLE[serverId]) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: 'Server not found' }),
+      };
+    }
+
+    const serverInfo = ROUTE_TABLE[serverId];
+    const instanceId = serverInfo.instanceId;
+
+    // Route: GET /servers/{id}/metadata
+    if (method === 'GET' && path.includes('/metadata')) {
+      const data = await ec2.describeInstances({ InstanceIds: [instanceId] }).promise();
+      const instance = data.Reservations[0]?.Instances[0];
+      
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          id: serverId,
+          instanceId,
+          state: instance?.State?.Name,
+          publicIp: instance?.PublicIpAddress,
+          privateIp: instance?.PrivateIpAddress,
+          launchTime: instance?.LaunchTime,
+        }),
+      };
+    }
+
+    // Route: GET /servers/{id}/health
+    if (method === 'GET' && path.includes('/health')) {
+      const data = await ec2.describeInstances({ InstanceIds: [instanceId] }).promise();
+      const instance = data.Reservations[0]?.Instances[0];
+      const state = instance?.State?.Name;
+      
+      let minecraftHealthy = false;
+      if (state === 'running' && instance?.PublicIpAddress) {
+        minecraftHealthy = await checkMinecraftPort(instance.PublicIpAddress, 25565);
+      }
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          id: serverId,
+          instanceState: state,
+          minecraftPort: minecraftHealthy ? 'open' : 'closed',
+          healthy: state === 'running' && minecraftHealthy,
+        }),
+      };
+    }
+
+    // Route: POST /servers/{id}/start
+    if (method === 'POST' && path.includes('/start')) {
+      await ec2.startInstances({ InstanceIds: [instanceId] }).promise();
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ message: 'Server starting', id: serverId }),
+      };
+    }
+
+    // Route: POST /servers/{id}/stop
+    if (method === 'POST' && path.includes('/stop')) {
+      await ec2.stopInstances({ InstanceIds: [instanceId] }).promise();
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ message: 'Server stopping', id: serverId }),
+      };
+    }
+
+    // Route: POST /servers/{id}/backup
+    if (method === 'POST' && path.includes('/backup')) {
+      // Find the data volume
+      const volumes = await ec2.describeVolumes({
+        Filters: [
+          { Name: 'attachment.instance-id', Values: [instanceId] },
+          { Name: 'attachment.device', Values: [serverInfo.dataDeviceName] },
+        ],
+      }).promise();
+
+      if (!volumes.Volumes || volumes.Volumes.length === 0) {
+        return {
+          statusCode: 404,
+          body: JSON.stringify({ error: 'Data volume not found' }),
+        };
+      }
+
+      const volumeId = volumes.Volumes[0].VolumeId;
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      
+      const snapshot = await ec2.createSnapshot({
+        VolumeId: volumeId,
+        Description: \`Minecraft backup for \${serverId}\`,
+      }).promise();
+
+      await ec2.createTags({
+        Resources: [snapshot.SnapshotId],
+        Tags: [
+          { Key: 'Name', Value: \`mc-backup-\${timestamp}\` },
+          { Key: 'InstanceId', Value: instanceId },
+          { Key: 'ServerId', Value: serverId },
+        ],
+      }).promise();
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          message: 'Backup initiated',
+          snapshotId: snapshot.SnapshotId,
+          volumeId,
+        }),
+      };
+    }
+
+    return {
+      statusCode: 404,
+      body: JSON.stringify({ error: 'Route not found' }),
+    };
+  } catch (error) {
+    console.error('Error:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: error.message }),
+    };
+  }
+};
+
+function checkMinecraftPort(host, port) {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    socket.setTimeout(2000);
+    
+    socket.on('connect', () => {
+      socket.destroy();
+      resolve(true);
+    });
+    
+    socket.on('timeout', () => {
+      socket.destroy();
+      resolve(false);
+    });
+    
+    socket.on('error', () => {
+      resolve(false);
+    });
+    
+    socket.connect(port, host);
+  });
+}
+",
+        },
+        "Environment": {
+          "Variables": {
+            "ROUTE_TABLE": {
+              "Fn::Join": [
+                "",
+                [
+                  "{"ciscos-adventure-rpg":{"instanceId":"",
+                  {
+                    "Ref": "CiscosAdventureRpgInstanceC60A2598",
+                  },
+                  "","dataDeviceName":"/dev/xvdb"},"better-mc-forge-bmc4":{"instanceId":"",
+                  {
+                    "Ref": "BetterMcForgeBmc4Instance21D943DC",
+                  },
+                  "","dataDeviceName":"/dev/xvdb"},"homestead-cozy":{"instanceId":"",
+                  {
+                    "Ref": "HomesteadCozyInstanceBC43767F",
+                  },
+                  "","dataDeviceName":"/dev/xvdb"},"dungeons-and-colonies-rpg":{"instanceId":"",
+                  {
+                    "Ref": "DungeonsAndColoniesRpgInstanceD1B4F935",
+                  },
+                  "","dataDeviceName":"/dev/xvdb"}}",
+                ],
+              ],
+            },
+            "TOKEN": "kPS7vQiUfiFci4gQpjDLCT5ZxEyZmSoS",
+          },
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "FleetManagerApiLambdaRoleE829074F",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs20.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "FleetManagerApiHttpApi8E0F49EE": {
+      "Properties": {
+        "Description": "Fleet Manager API for Minecraft servers",
+        "Name": "MinecraftFleetManagerApi",
+        "ProtocolType": "HTTP",
+      },
+      "Type": "AWS::ApiGatewayV2::Api",
+    },
+    "FleetManagerApiIntegration664312A4": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "FleetManagerApiHttpApi8E0F49EE",
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "FleetManagerApiHandlerFFB1136C",
+            "Arn",
+          ],
+        },
+        "PayloadFormatVersion": "2.0",
+      },
+      "Type": "AWS::ApiGatewayV2::Integration",
+    },
+    "FleetManagerApiLambdaRoleDefaultPolicyF107761A": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "ec2:StartInstances",
+                "ec2:StopInstances",
+                "ec2:DescribeInstances",
+                "ec2:DescribeInstanceStatus",
+                "ec2:CreateSnapshot",
+                "ec2:CreateTags",
+                "ec2:DescribeVolumes",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "FleetManagerApiLambdaRoleDefaultPolicyF107761A",
+        "Roles": [
+          {
+            "Ref": "FleetManagerApiLambdaRoleE829074F",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "FleetManagerApiLambdaRoleE829074F": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "FleetManagerApiRoute0E3EB2F53": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "FleetManagerApiHttpApi8E0F49EE",
+        },
+        "RouteKey": "GET /servers",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "FleetManagerApiIntegration664312A4",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::ApiGatewayV2::Route",
+    },
+    "FleetManagerApiRoute1151AB96C": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "FleetManagerApiHttpApi8E0F49EE",
+        },
+        "RouteKey": "GET /servers/{id}/metadata",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "FleetManagerApiIntegration664312A4",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::ApiGatewayV2::Route",
+    },
+    "FleetManagerApiRoute2BCA5599E": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "FleetManagerApiHttpApi8E0F49EE",
+        },
+        "RouteKey": "GET /servers/{id}/health",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "FleetManagerApiIntegration664312A4",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::ApiGatewayV2::Route",
+    },
+    "FleetManagerApiRoute3B9FC93A8": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "FleetManagerApiHttpApi8E0F49EE",
+        },
+        "RouteKey": "POST /servers/{id}/start",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "FleetManagerApiIntegration664312A4",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::ApiGatewayV2::Route",
+    },
+    "FleetManagerApiRoute44C49156B": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "FleetManagerApiHttpApi8E0F49EE",
+        },
+        "RouteKey": "POST /servers/{id}/stop",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "FleetManagerApiIntegration664312A4",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::ApiGatewayV2::Route",
+    },
+    "FleetManagerApiRoute51748A179": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "FleetManagerApiHttpApi8E0F49EE",
+        },
+        "RouteKey": "POST /servers/{id}/backup",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "FleetManagerApiIntegration664312A4",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::ApiGatewayV2::Route",
+    },
+    "FleetManagerApiStage25CBAC9B": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "FleetManagerApiHttpApi8E0F49EE",
+        },
+        "AutoDeploy": true,
+        "StageName": "$default",
+      },
+      "Type": "AWS::ApiGatewayV2::Stage",
+    },
+    "HomesteadCozyDataVolumeAttachmentD35C6407": {
+      "Properties": {
+        "Device": "/dev/xvdb",
+        "InstanceId": {
+          "Ref": "HomesteadCozyInstanceBC43767F",
+        },
+        "VolumeId": {
+          "Ref": "HomesteadCozyDataVolumeC4F59537",
+        },
+      },
+      "Type": "AWS::EC2::VolumeAttachment",
+    },
+    "HomesteadCozyDataVolumeC4F59537": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::GetAtt": [
+            "HomesteadCozyInstanceBC43767F",
+            "AvailabilityZone",
+          ],
+        },
+        "Encrypted": true,
+        "MultiAttachEnabled": false,
+        "Size": 50,
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+        ],
+        "VolumeType": "gp3",
+      },
+      "Type": "AWS::EC2::Volume",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "HomesteadCozyEIP3CDA0528": {
+      "Properties": {
+        "Domain": "vpc",
+        "InstanceId": {
+          "Ref": "HomesteadCozyInstanceBC43767F",
+        },
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::EIP",
+    },
+    "HomesteadCozyInstanceBC43767F": {
+      "DependsOn": [
+        "HomesteadCozyInstanceRoleDefaultPolicy92A10692",
+        "HomesteadCozyInstanceRole4E9C899D",
+      ],
+      "Properties": {
+        "AvailabilityZone": "dummy1a",
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "Encrypted": true,
+              "VolumeSize": 8,
+              "VolumeType": "gp3",
+            },
+          },
+        ],
+        "IamInstanceProfile": {
+          "Ref": "HomesteadCozyInstanceInstanceProfileD8C4CF57",
+        },
+        "ImageId": {
+          "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestal2023amikernel61arm64C96584B6F00A464EAD1953AFF4B05118Parameter",
+        },
+        "InstanceType": "t4g.small",
+        "SecurityGroupIds": [
+          {
+            "Fn::GetAtt": [
+              "HomesteadCozySecurityGroup807C92D5",
+              "GroupId",
+            ],
+          },
+        ],
+        "SubnetId": {
+          "Ref": "MinecraftVpcPublicSubnet1SubnetF714F8C3",
+        },
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+          {
+            "Key": "Name",
+            "Value": "TestMinecraftStack/HomesteadCozy/Instance",
+          },
+        ],
+        "UserData": {
+          "Fn::Base64": "#!/bin/bash
+echo "Waiting for volume to be attached..."
+while [ ! -e /dev/xvdb ]; do sleep 1; done
+sleep 5
+echo "Setting up data volume..."
+if ! blkid /dev/xvdb; then
+  mkfs -t ext4 /dev/xvdb
+fi
+mkdir -p /minecraft
+mount /dev/xvdb /minecraft
+echo "/dev/xvdb /minecraft ext4 defaults,nofail 0 2" >> /etc/fstab
+echo "Installing Docker..."
+dnf install -y docker
+systemctl enable docker
+systemctl start docker
+echo "Installing AWS CLI..."
+dnf install -y awscli
+echo "Fetching CurseForge API key from SSM..."
+CF_API_KEY=$(aws ssm get-parameter --name "/minecraft/curseforge/apiKey" --query Parameter.Value --output text --region us-east-1)
+echo "Starting Minecraft server container..."
+docker run -d --restart=always --name minecraft \\
+  -p 25565:25565 \\
+  -e EULA=TRUE \\
+  -e MEMORY=4G \\
+  -e TYPE="AUTO_CURSEFORGE" -e EULA="TRUE" -e MEMORY="6G" -e CF_PAGE_URL="https://www.curseforge.com/minecraft/modpacks/homestead-cozy" \\
+  -e CF_API_KEY="$CF_API_KEY" \\
+  -v /minecraft:/data \\
+  itzg/minecraft-server
+echo "Minecraft server setup complete!"",
+        },
+      },
+      "Type": "AWS::EC2::Instance",
+    },
+    "HomesteadCozyInstanceInstanceProfileD8C4CF57": {
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "HomesteadCozyInstanceRole4E9C899D",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::InstanceProfile",
+    },
+    "HomesteadCozyInstanceRole4E9C899D": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ec2.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/AmazonSSMManagedInstanceCore",
+              ],
+            ],
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "HomesteadCozyInstanceRoleDefaultPolicy92A10692": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "ssm:GetParameter",
+              "Effect": "Allow",
+              "Resource": "arn:aws:ssm:us-east-1:123456789012:parameter/minecraft/curseforge/apiKey",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "HomesteadCozyInstanceRoleDefaultPolicy92A10692",
+        "Roles": [
+          {
+            "Ref": "HomesteadCozyInstanceRole4E9C899D",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "HomesteadCozySecurityGroup807C92D5": {
+      "Properties": {
+        "GroupDescription": "Security group for Minecraft server",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow Minecraft traffic",
+            "FromPort": 25565,
+            "IpProtocol": "tcp",
+            "ToPort": 25565,
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "MinecraftData",
+            "Value": "true",
+          },
+        ],
+        "VpcId": {
+          "Ref": "MinecraftVpc615F5BB1",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "MinecraftVpc615F5BB1": {
+      "Properties": {
+        "CidrBlock": "10.0.0.0/16",
+        "EnableDnsHostnames": true,
+        "EnableDnsSupport": true,
+        "InstanceTenancy": "default",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "TestMinecraftStack/MinecraftVpc",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::VPC",
+    },
+    "MinecraftVpcIGW867A250E": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "TestMinecraftStack/MinecraftVpc",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::InternetGateway",
+    },
+    "MinecraftVpcPublicSubnet1DefaultRoute4C517B1A": {
+      "DependsOn": [
+        "MinecraftVpcVPCGW2587D71F",
+      ],
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "MinecraftVpcIGW867A250E",
+        },
+        "RouteTableId": {
+          "Ref": "MinecraftVpcPublicSubnet1RouteTableDEAA92BA",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "MinecraftVpcPublicSubnet1RouteTableAssociation0EF1A3B3": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "MinecraftVpcPublicSubnet1RouteTableDEAA92BA",
+        },
+        "SubnetId": {
+          "Ref": "MinecraftVpcPublicSubnet1SubnetF714F8C3",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "MinecraftVpcPublicSubnet1RouteTableDEAA92BA": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "TestMinecraftStack/MinecraftVpc/PublicSubnet1",
+          },
+        ],
+        "VpcId": {
+          "Ref": "MinecraftVpc615F5BB1",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "MinecraftVpcPublicSubnet1SubnetF714F8C3": {
+      "Properties": {
+        "AvailabilityZone": "dummy1a",
+        "CidrBlock": "10.0.0.0/24",
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "Public",
+          },
+          {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public",
+          },
+          {
+            "Key": "Name",
+            "Value": "TestMinecraftStack/MinecraftVpc/PublicSubnet1",
+          },
+        ],
+        "VpcId": {
+          "Ref": "MinecraftVpc615F5BB1",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "MinecraftVpcVPCGW2587D71F": {
+      "Properties": {
+        "InternetGatewayId": {
+          "Ref": "MinecraftVpcIGW867A250E",
+        },
+        "VpcId": {
+          "Ref": "MinecraftVpc615F5BB1",
+        },
+      },
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
