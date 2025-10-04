@@ -38,7 +38,7 @@ exports[`MinecraftStack snapshot test 1`] = `
     },
     "FleetApiToken": {
       "Description": "Fleet Manager API authentication token",
-      "Value": "OZplp2lfp37E3a548aFhiP2Due3nnojh",
+      "Value": "kPS7vQiUfiFci4gQpjDLCT5ZxEyZmSoS",
     },
     "FleetManagerApiApiEndpoint8DEB0548": {
       "Description": "Fleet Manager API endpoint",
@@ -57,7 +57,7 @@ exports[`MinecraftStack snapshot test 1`] = `
     },
     "FleetManagerApiApiTokenF2DE227B": {
       "Description": "API authentication token",
-      "Value": "OZplp2lfp37E3a548aFhiP2Due3nnojh",
+      "Value": "kPS7vQiUfiFci4gQpjDLCT5ZxEyZmSoS",
     },
     "HomesteadCozyEIP": {
       "Description": "Homestead – Cozy server address",
@@ -1077,7 +1077,7 @@ function checkMinecraftPort(host, port) {
                 ],
               ],
             },
-            "TOKEN": "OZplp2lfp37E3a548aFhiP2Due3nnojh",
+            "TOKEN": "kPS7vQiUfiFci4gQpjDLCT5ZxEyZmSoS",
           },
         },
         "Handler": "index.handler",
