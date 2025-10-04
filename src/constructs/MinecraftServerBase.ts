@@ -1,7 +1,9 @@
 import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
+import { DLM_TAG_KEY, DLM_TAG_VALUE } from '../constants';
 import { mapMinecraftEnv, MinecraftDockerEnv } from '../shared/types';
 
 export interface MinecraftServerBaseProps {
@@ -103,6 +105,14 @@ export class MinecraftServerBase extends Construct {
       'Allow Minecraft traffic',
     );
 
+    // Suppress EC23 - Minecraft servers need to accept connections from any IP
+    NagSuppressions.addResourceSuppressions(this.securityGroup, [
+      {
+        id: 'AwsSolutions-EC23',
+        reason: 'Minecraft server must accept connections from players worldwide. Cannot restrict to specific IPs.',
+      },
+    ]);
+
     // IAM role for the instance
     const role = new iam.Role(this, 'InstanceRole', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
@@ -110,6 +120,15 @@ export class MinecraftServerBase extends Construct {
         iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'),
       ],
     });
+
+    // Suppress IAM4 - AWS managed policy is acceptable for this use case
+    NagSuppressions.addResourceSuppressions(role, [
+      {
+        id: 'AwsSolutions-IAM4',
+        reason: 'AmazonSSMManagedInstanceCore is required for Systems Manager access. Few resources exist in account due to org structure.',
+        appliesTo: ['Policy::arn:<AWS::Partition>:iam::aws:policy/AmazonSSMManagedInstanceCore'],
+      },
+    ]);
 
     // If CF API parameter is provided, grant read access
     if (props.cfApiParameterName) {
@@ -141,7 +160,28 @@ export class MinecraftServerBase extends Construct {
       securityGroup: this.securityGroup,
       role,
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+      blockDevices: [
+        {
+          deviceName: '/dev/xvda',
+          volume: ec2.BlockDeviceVolume.ebs(8, {
+            encrypted: true,
+            volumeType: ec2.EbsDeviceVolumeType.GP3,
+          }),
+        },
+      ],
     });
+
+    cdk.Tags.of(this.instance).add(DLM_TAG_KEY, DLM_TAG_VALUE);
+
+    // Suppress EC29 - Instance is not in ASG by design, and termination protection is not needed
+    // because the data volume is retained separately
+    const cfnInstance = this.instance.node.defaultChild as ec2.CfnInstance;
+    NagSuppressions.addResourceSuppressions(cfnInstance, [
+      {
+        id: 'AwsSolutions-EC29',
+        reason: 'Minecraft server does not require ASG. Data volume has retention policy to prevent data loss.',
+      },
+    ]);
 
     // Attach EBS data volume
     this.dataDeviceName = '/dev/xvdb';
@@ -150,6 +190,7 @@ export class MinecraftServerBase extends Construct {
     const dataVolume = new ec2.Volume(this, 'DataVolume', {
       availabilityZone: this.instance.instanceAvailabilityZone,
       size: cdk.Size.gibibytes(volumeGiB),
+      encrypted: true,
       volumeType: ec2.EbsDeviceVolumeType.GP3,
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
@@ -189,16 +230,12 @@ export class MinecraftServerBase extends Construct {
       'systemctl start docker',
     );
 
-    // Fetch CF API key if needed
-    let cfApiKeyVar = '';
+    // Install AWS CLI if CF API key is needed
     if (props.cfApiParameterName) {
       userData.addCommands(
         'echo "Installing AWS CLI..."',
         'dnf install -y awscli',
-        'echo "Fetching CurseForge API key from SSM..."',
-        `export CF_API_KEY=$(aws ssm get-parameter --name "${props.cfApiParameterName}" --query Parameter.Value --output text --region ${cdk.Stack.of(this).region})`,
       );
-      cfApiKeyVar = '-e CF_API_KEY="$CF_API_KEY"';
     }
 
     // Build docker environment variables
@@ -212,16 +249,69 @@ export class MinecraftServerBase extends Construct {
     const dockerImageTag = props.dockerImageTag ?? 'latest';
     const fullDockerImage = `${dockerImage}:${dockerImageTag}`;
 
-    // Run Minecraft server container
+    // Create a startup script that will run the container
+    const startupScriptPath = '/usr/local/bin/start-minecraft.sh';
+    const cfApiKeyFetch = props.cfApiParameterName
+      ? `export CF_API_KEY=$(aws ssm get-parameter --name "${props.cfApiParameterName}" --query Parameter.Value --output text --region ${cdk.Stack.of(this).region} 2>/dev/null || echo "")\n  CF_API_KEY_VAR="-e CF_API_KEY=\${CF_API_KEY}"`
+      : 'CF_API_KEY_VAR=""';
+
     userData.addCommands(
-      'echo "Starting Minecraft server container..."',
-      'docker run -d --restart=always --name minecraft \\',
+      'echo "Creating Minecraft startup script..."',
+      `cat > ${startupScriptPath} << 'STARTUP_SCRIPT_EOF'`,
+      '#!/bin/bash',
+      'set -e',
+      '',
+      '# Wait for Docker to be ready',
+      'while ! docker info >/dev/null 2>&1; do',
+      '  echo "Waiting for Docker daemon..."',
+      '  sleep 2',
+      'done',
+      '',
+      '# Fetch CF API key if needed',
+      cfApiKeyFetch,
+      '',
+      '# Stop and remove existing container if it exists',
+      'docker stop minecraft 2>/dev/null || true',
+      'docker rm minecraft 2>/dev/null || true',
+      '',
+      '# Start the Minecraft server container',
+      'docker run -d --restart=unless-stopped --name minecraft \\',
       '  -p 25565:25565 \\',
       '  -e EULA=TRUE \\',
       `  ${envVars} \\`,
-      `  ${cfApiKeyVar} \\`,
+      '  ${CF_API_KEY_VAR} \\',
       '  -v /minecraft:/data \\',
       `  ${fullDockerImage}`,
+      '',
+      'echo "Minecraft server container started successfully"',
+      'STARTUP_SCRIPT_EOF',
+      '',
+      `chmod +x ${startupScriptPath}`,
+    );
+
+    // Create systemd service to start Minecraft on boot
+    userData.addCommands(
+      'echo "Creating systemd service..."',
+      'cat > /etc/systemd/system/minecraft.service << \'SERVICE_EOF\'',
+      '[Unit]',
+      'Description=Minecraft Server',
+      'After=docker.service',
+      'Requires=docker.service',
+      '',
+      '[Service]',
+      'Type=oneshot',
+      'RemainAfterExit=yes',
+      `ExecStart=${startupScriptPath}`,
+      'ExecStop=/usr/bin/docker stop minecraft',
+      'TimeoutStartSec=300',
+      '',
+      '[Install]',
+      'WantedBy=multi-user.target',
+      'SERVICE_EOF',
+      '',
+      'systemctl daemon-reload',
+      'systemctl enable minecraft.service',
+      'systemctl start minecraft.service',
       'echo "Minecraft server setup complete!"',
     );
 

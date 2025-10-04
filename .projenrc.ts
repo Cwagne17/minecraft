@@ -58,7 +58,7 @@ project.addTask('mc:deploy', {
 
 project.addTask('nag', {
   description: 'Run cdk-nag compliance checks',
-  exec: 'jest --selectProjects nag || echo "Nag checks completed"',
+  exec: 'cdk nag || echo "Nag checks completed"',
 });
 
 project.synth();

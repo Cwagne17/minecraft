@@ -1,5 +1,6 @@
 import * as dlm from 'aws-cdk-lib/aws-dlm';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 
 export interface MinecraftDlmBackupsProps {
@@ -39,6 +40,15 @@ export class MinecraftDlmBackups extends Construct {
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSDataLifecycleManagerServiceRole'),
       ],
     });
+
+    // Suppress IAM4 - AWS managed policy is required for DLM service role
+    NagSuppressions.addResourceSuppressions(dlmRole, [
+      {
+        id: 'AwsSolutions-IAM4',
+        reason: 'AWSDataLifecycleManagerServiceRole is required for DLM. Few resources exist in account due to org structure.',
+        appliesTo: ['Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSDataLifecycleManagerServiceRole'],
+      },
+    ]);
 
     // Create lifecycle policy
     this.policy = new dlm.CfnLifecyclePolicy(this, 'Policy', {

@@ -1,9 +1,10 @@
 import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 import { DLM_TAG_KEY, DLM_TAG_VALUE } from '../constants';
 import { MinecraftDlmBackups } from '../constructs/MinecraftDlmBackups';
-import { DungeonsAndColoniesRpg } from '../constructs/patterns/DungeonsAndColoniesRpg';
+import { CiscosAdventureRpg } from '../constructs/patterns/CiscosAdventureRpg';
 
 export interface MinecraftStackProps extends cdk.StackProps {
   /**
@@ -30,16 +31,15 @@ export class MinecraftStack extends cdk.Stack {
       ],
     });
 
-    const cfApiParameterName = '/minecraft/curseforge/apiKey';
+    // Suppress VPC7 - Flow logs are cost-prohibitive for this use case
+    NagSuppressions.addResourceSuppressions(vpc, [
+      {
+        id: 'AwsSolutions-VPC7',
+        reason: 'VPC Flow Logs are cost-prohibitive for this Minecraft server deployment.',
+      },
+    ], true);
 
-    const dungeonsServer = new DungeonsAndColoniesRpg(this, 'DungeonsAndColoniesRpg', {
-      vpc,
-      allocateElasticIp: true,
-      cfApiParameterName,
-    });
-
-    // Tag instances for DLM backups
-    cdk.Tags.of(dungeonsServer).add(DLM_TAG_KEY, DLM_TAG_VALUE);
+    const ciscos = new CiscosAdventureRpg(this, 'CiscosAdventureRpg', { vpc });
 
     // Optional DLM backups
     if (props.enableDlmBackups ?? true) {
@@ -62,9 +62,9 @@ export class MinecraftStack extends cdk.Stack {
     // });
 
 
-    new cdk.CfnOutput(this, 'DungeonsAndColoniesRpgEIP', {
-      value: dungeonsServer.eip?.ref ?? dungeonsServer.instance.instancePublicDnsName,
-      description: 'Dungeons & Colonies RPG server address',
+    new cdk.CfnOutput(this, 'CiscosAdventureRpgEIP', {
+      value: ciscos.eip?.ref ?? ciscos.instance.instancePublicDnsName,
+      description: 'Ciscos Adventure RPG server address',
     });
 
     // new cdk.CfnOutput(this, 'FleetApiBase', {

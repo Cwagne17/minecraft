@@ -168,7 +168,7 @@
       "description": "Run cdk-nag compliance checks",
       "steps": [
         {
-          "exec": "jest --selectProjects nag || echo \"Nag checks completed\""
+          "exec": "cdk nag || echo \"Nag checks completed\""
         }
       ]
     },
