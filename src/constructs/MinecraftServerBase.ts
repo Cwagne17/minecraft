@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
+import { mapMinecraftEnv, MinecraftDockerEnv } from '../shared/types';
 
 export interface MinecraftServerBaseProps {
   /**
@@ -11,13 +12,14 @@ export interface MinecraftServerBaseProps {
 
   /**
    * Instance type for the Minecraft server.
-   * @default t4g.small
+   * Uses a t4g instance type by default.
+   * @default medium
    */
-  readonly instanceType?: ec2.InstanceType;
+  readonly instanceSize?: ec2.InstanceSize;
 
   /**
    * Size of the data volume in GiB.
-   * @default 40
+   * @default 30
    */
   readonly volumeGiB?: number;
 
@@ -40,10 +42,16 @@ export interface MinecraftServerBaseProps {
   readonly dockerImage?: string;
 
   /**
+   * Docker image tag to use (e.g., 'java17', 'java21', 'latest').
+   * @default 'latest'
+   */
+  readonly dockerImageTag?: string;
+
+  /**
    * Environment variables for the docker container.
    * @default {}
    */
-  readonly dockerEnv?: Record<string, string>;
+  readonly dockerEnv?: MinecraftDockerEnv;
 
   /**
    * Extra lines to add to user data script.
@@ -52,7 +60,7 @@ export interface MinecraftServerBaseProps {
   readonly extraUserDataLines?: string[];
 
   /**
-   * Name of SSM parameter containing CurseForge API key (plaintext, no KMS).
+   * Name of SSM parameter containing CurseForge API key.
    * If provided, will be fetched and passed to docker as CF_API_KEY.
    */
   readonly cfApiParameterName?: string;
@@ -120,38 +128,28 @@ export class MinecraftServerBase extends Construct {
       cpuType: ec2.AmazonLinuxCpuType.ARM_64,
     });
 
-    const instanceType = props.instanceType ?? ec2.InstanceType.of(
-      ec2.InstanceClass.T4G,
-      ec2.InstanceSize.SMALL,
-    );
+    const instanceSize = props.instanceSize ?? ec2.InstanceSize.MEDIUM;
 
     // Create the instance
     this.instance = new ec2.Instance(this, 'Instance', {
       vpc: this.vpc,
-      instanceType,
+      instanceType: ec2.InstanceType.of(
+        ec2.InstanceClass.T4G,
+        instanceSize,
+      ),
       machineImage,
       securityGroup: this.securityGroup,
       role,
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
-      blockDevices: [
-        {
-          deviceName: '/dev/xvda',
-          volume: ec2.BlockDeviceVolume.ebs(8, {
-            encrypted: true,
-            volumeType: ec2.EbsDeviceVolumeType.GP3,
-          }),
-        },
-      ],
     });
 
     // Attach EBS data volume
     this.dataDeviceName = '/dev/xvdb';
-    const volumeGiB = props.volumeGiB ?? 40;
+    const volumeGiB = props.volumeGiB ?? 30;
 
     const dataVolume = new ec2.Volume(this, 'DataVolume', {
       availabilityZone: this.instance.instanceAvailabilityZone,
       size: cdk.Size.gibibytes(volumeGiB),
-      encrypted: true,
       volumeType: ec2.EbsDeviceVolumeType.GP3,
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
@@ -198,18 +196,21 @@ export class MinecraftServerBase extends Construct {
         'echo "Installing AWS CLI..."',
         'dnf install -y awscli',
         'echo "Fetching CurseForge API key from SSM..."',
-        `CF_API_KEY=$(aws ssm get-parameter --name "${props.cfApiParameterName}" --query Parameter.Value --output text --region ${cdk.Stack.of(this).region})`,
+        `export CF_API_KEY=$(aws ssm get-parameter --name "${props.cfApiParameterName}" --query Parameter.Value --output text --region ${cdk.Stack.of(this).region})`,
       );
       cfApiKeyVar = '-e CF_API_KEY="$CF_API_KEY"';
     }
 
     // Build docker environment variables
     const dockerEnv = props.dockerEnv ?? {};
-    const envVars = Object.entries(dockerEnv)
+    const mappedEnv = mapMinecraftEnv(dockerEnv);
+    const envVars = Object.entries(mappedEnv)
       .map(([key, value]) => `-e ${key}="${value}"`)
       .join(' ');
 
     const dockerImage = props.dockerImage ?? 'itzg/minecraft-server';
+    const dockerImageTag = props.dockerImageTag ?? 'latest';
+    const fullDockerImage = `${dockerImage}:${dockerImageTag}`;
 
     // Run Minecraft server container
     userData.addCommands(
@@ -217,11 +218,10 @@ export class MinecraftServerBase extends Construct {
       'docker run -d --restart=always --name minecraft \\',
       '  -p 25565:25565 \\',
       '  -e EULA=TRUE \\',
-      '  -e MEMORY=4G \\',
       `  ${envVars} \\`,
       `  ${cfApiKeyVar} \\`,
       '  -v /minecraft:/data \\',
-      `  ${dockerImage}`,
+      `  ${fullDockerImage}`,
       'echo "Minecraft server setup complete!"',
     );
 

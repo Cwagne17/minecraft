@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { Aspects } from 'aws-cdk-lib';
 import { AwsSolutionsChecks, NagSuppressions } from 'cdk-nag';
+import 'source-map-support/register';
+import { MINECRAFT_ACCOUNT_ID, MINECRAFT_REGION } from './constants';
 import { PipelineStack } from './stacks/PipelineStack';
 // import { MinecraftStack } from './stacks/MinecraftStack';
 
@@ -14,8 +15,8 @@ Aspects.of(app).add(new AwsSolutionsChecks({ verbose: false }));
 // Deploy via pipeline (recommended for production)
 const pipelineStack = new PipelineStack(app, 'MinecraftPipeline', {
   env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT || '123456789012',
-    region: process.env.CDK_DEFAULT_REGION || 'us-east-1',
+    account: MINECRAFT_ACCOUNT_ID,
+    region: MINECRAFT_REGION,
   },
 });
 
@@ -47,8 +48,8 @@ NagSuppressions.addStackSuppressions(pipelineStack, [
 // Uncomment the following to deploy directly:
 // new MinecraftStack(app, 'MinecraftStack', {
 //   env: {
-//     account: process.env.CDK_DEFAULT_ACCOUNT,
-//     region: process.env.CDK_DEFAULT_REGION,
+//     account: MINECRAFT_ACCOUNT_ID,
+//     region: MINECRAFT_REGION,
 //   },
 // });
 

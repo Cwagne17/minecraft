@@ -1,4 +1,3 @@
-import * as cdk from 'aws-cdk-lib';
 import * as dlm from 'aws-cdk-lib/aws-dlm';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
@@ -18,7 +17,7 @@ export interface MinecraftDlmBackupsProps {
 
   /**
    * Number of snapshots to retain.
-   * @default 7
+   * @default 3
    */
   readonly retentionCount?: number;
 }
@@ -31,7 +30,7 @@ export class MinecraftDlmBackups extends Construct {
 
     const tagKey = props.tagKey ?? 'MinecraftData';
     const tagValue = props.tagValue ?? 'true';
-    const retentionCount = props.retentionCount ?? 7;
+    const retentionCount = props.retentionCount ?? 3;
 
     // Create IAM role for DLM
     const dlmRole = new iam.Role(this, 'DlmRole', {

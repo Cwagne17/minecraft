@@ -1,17 +1,26 @@
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
-import { CurseForgePatternBase, CurseForgePatternProps } from './CurseForgePatternBase';
+import { MinecraftDockerEnv } from '../../shared/types';
+import { MinecraftServerBaseProps } from '../MinecraftServerBase';
+import { CurseForgePatternBase } from './CurseForgePatternBase';
+
+const HOMESTEAD_COZY_ENV: MinecraftDockerEnv = {
+  cfPageUrl: 'https://www.curseforge.com/minecraft/modpacks/homestead-cozy',
+  memory: '6G',
+};
 
 export class HomesteadCozy extends CurseForgePatternBase {
-  constructor(scope: Construct, id: string, props: CurseForgePatternProps = {}) {
+  constructor(scope: Construct, id: string, props: Omit<MinecraftServerBaseProps, 'dockerEnv' | 'dockerImageTag' | 'volumeGiB' | 'instanceSize'> = {}) {
     super(
       scope,
       id,
       {
-        cfPageUrl: 'https://www.curseforge.com/minecraft/modpacks/homestead-cozy',
-        defaultVolumeGiB: 50,
-        defaultMemory: '6G',
+        volumeGiB: 50,
+        instanceSize: ec2.InstanceSize.MEDIUM,
+        dockerImageTag: 'java17',
+        dockerEnv: HOMESTEAD_COZY_ENV,
+        ...props,
       },
-      props,
     );
   }
 }

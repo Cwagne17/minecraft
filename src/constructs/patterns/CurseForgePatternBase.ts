@@ -1,38 +1,48 @@
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
+import { CURSEFORGE_API_PARAMETER_NAME } from '../../constants';
+import { Bool, MinecraftDockerEnv, ServerType } from '../../shared/types';
 import { MinecraftServerBase, MinecraftServerBaseProps } from '../MinecraftServerBase';
 
-export interface CurseForgePatternProps extends Omit<MinecraftServerBaseProps, 'dockerEnv'> {
+export interface CurseForgePatternProps extends Omit<MinecraftServerBaseProps, 'dockerEnv' | 'dockerImageTag' | 'volumeGiB' | 'instanceSize'> {
   /**
-   * Memory allocation for the server.
-   * @default from pattern
+   * Size of the data volume in GiB.
    */
-  readonly memory?: string;
-}
+  readonly volumeGiB?: number;
 
-export interface CurseForgePatternConfig {
-  readonly cfPageUrl: string;
-  readonly defaultVolumeGiB: number;
-  readonly defaultMemory: string;
+  /**
+   * Instance size for the Minecraft server.
+   */
+  readonly instanceSize: ec2.InstanceSize;
+
+  /**
+   * Docker image tag to use (e.g., 'java17', 'java21').
+   */
+  readonly dockerImageTag: string;
+
+  /**
+   * Docker environment variables specific to this pattern.
+   */
+  readonly dockerEnv: MinecraftDockerEnv;
 }
 
 export class CurseForgePatternBase extends MinecraftServerBase {
   constructor(
     scope: Construct,
     id: string,
-    config: CurseForgePatternConfig,
-    props: CurseForgePatternProps = {},
+    props: CurseForgePatternProps,
   ) {
-    const memory = props.memory ?? config.defaultMemory;
-    const volumeGiB = props.volumeGiB ?? config.defaultVolumeGiB;
+    const baseDockerEnv: MinecraftDockerEnv = {
+      type: ServerType.AUTO_CURSEFORGE,
+      useAikarFlags: Bool.TRUE,
+    };
 
     super(scope, id, {
       ...props,
-      volumeGiB,
+      cfApiParameterName: CURSEFORGE_API_PARAMETER_NAME,
       dockerEnv: {
-        TYPE: 'AUTO_CURSEFORGE',
-        EULA: 'TRUE',
-        MEMORY: memory,
-        CF_PAGE_URL: config.cfPageUrl,
+        ...baseDockerEnv,
+        ...props.dockerEnv,
       },
     });
   }
