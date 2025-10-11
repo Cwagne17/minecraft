@@ -10,6 +10,7 @@ const CISCOS_ADVENTURE_RPG_ENV: MinecraftDockerEnv = {
   version: MinecraftGameVersion.V1_20_1,
   motd: 'Welcome to Cisco\'s Adventure RPG Ultimate!',
   opPermissionLevel: OpPermissionLevel.LEVEL_4,
+
 };
 
 export class CiscosAdventureRpg extends CurseForgePatternBase {
