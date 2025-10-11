@@ -66,6 +66,13 @@ export interface MinecraftServerBaseProps {
    * If provided, will be fetched and passed to docker as CF_API_KEY.
    */
   readonly cfApiParameterName?: string;
+
+  /**
+   * Enable detailed monitoring for the EC2 instance.
+   * Provides 1-minute metrics instead of 5-minute metrics.
+   * @default false (to avoid ~$2/month cost)
+   */
+  readonly detailedMonitoring?: boolean;
 }
 
 export class MinecraftServerBase extends Construct {
@@ -160,6 +167,7 @@ export class MinecraftServerBase extends Construct {
       securityGroup: this.securityGroup,
       role,
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+      detailedMonitoring: props.detailedMonitoring ?? false,
       blockDevices: [
         {
           deviceName: '/dev/xvda',
@@ -173,15 +181,24 @@ export class MinecraftServerBase extends Construct {
 
     cdk.Tags.of(this.instance).add(DLM_TAG_KEY, DLM_TAG_VALUE);
 
-    // Suppress EC29 - Instance is not in ASG by design, and termination protection is not needed
-    // because the data volume is retained separately
+    // Add suppressions for the EC2 instance
     const cfnInstance = this.instance.node.defaultChild as ec2.CfnInstance;
-    NagSuppressions.addResourceSuppressions(cfnInstance, [
+    const instanceSuppressions = [
       {
         id: 'AwsSolutions-EC29',
         reason: 'Minecraft server does not require ASG. Data volume has retention policy to prevent data loss.',
       },
-    ]);
+    ];
+
+    // Suppress EC28 if detailed monitoring is disabled to avoid cost
+    if (!(props.detailedMonitoring ?? false)) {
+      instanceSuppressions.push({
+        id: 'AwsSolutions-EC28',
+        reason: 'Detailed monitoring disabled to avoid ~$2/month cost. Standard 5-minute monitoring is sufficient for Minecraft server.',
+      });
+    }
+
+    NagSuppressions.addResourceSuppressions(cfnInstance, instanceSuppressions);
 
     // Attach EBS data volume
     this.dataDeviceName = '/dev/xvdb';
@@ -207,19 +224,19 @@ export class MinecraftServerBase extends Construct {
     // Wait for volume to be attached
     userData.addCommands(
       'echo "Waiting for volume to be attached..."',
-      'while [ ! -e /dev/xvdb ]; do sleep 1; done',
+      `while [ ! -e ${this.dataDeviceName} ]; do sleep 1; done`,
       'sleep 5',
     );
 
     // Format and mount volume if not already formatted
     userData.addCommands(
       'echo "Setting up data volume..."',
-      'if ! blkid /dev/xvdb; then',
-      '  mkfs -t ext4 /dev/xvdb',
+      `if ! blkid ${this.dataDeviceName}; then`,
+      `  mkfs -t ext4 ${this.dataDeviceName}`,
       'fi',
       'mkdir -p /minecraft',
-      'mount /dev/xvdb /minecraft',
-      'echo "/dev/xvdb /minecraft ext4 defaults,nofail 0 2" >> /etc/fstab',
+      `mount ${this.dataDeviceName} /minecraft`,
+      `echo "${this.dataDeviceName} /minecraft ext4 defaults,nofail 0 2" >> /etc/fstab`,
     );
 
     // Install Docker

@@ -1,6 +1,6 @@
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
-import { MinecraftDockerEnv, MinecraftGameVersion } from '../../shared/types';
+import { MinecraftDockerEnv, MinecraftGameVersion, OpPermissionLevel } from '../../shared/types';
 import { MinecraftServerBaseProps } from '../MinecraftServerBase';
 import { CurseForgePatternBase } from './CurseForgePatternBase';
 
@@ -9,6 +9,7 @@ const CISCOS_ADVENTURE_RPG_ENV: MinecraftDockerEnv = {
   memory: '12G',
   version: MinecraftGameVersion.V1_20_1,
   motd: 'Welcome to Cisco\'s Adventure RPG Ultimate!',
+  opPermissionLevel: OpPermissionLevel.LEVEL_4,
 };
 
 export class CiscosAdventureRpg extends CurseForgePatternBase {
