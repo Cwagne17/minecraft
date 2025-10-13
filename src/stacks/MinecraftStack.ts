@@ -4,7 +4,7 @@ import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 import { DLM_TAG_KEY, DLM_TAG_VALUE } from '../constants';
 import { MinecraftDlmBackups } from '../constructs/MinecraftDlmBackups';
-import { CiscosAdventureRpg } from '../constructs/patterns/CiscosAdventureRpg';
+import { AllTheMods10 } from '../constructs/patterns/AllTheMods10';
 
 export interface MinecraftStackProps extends cdk.StackProps {
   /**
@@ -39,42 +39,17 @@ export class MinecraftStack extends cdk.Stack {
       },
     ], true);
 
-    const ciscos = new CiscosAdventureRpg(this, 'CiscosAdventureRpg', { vpc });
+    // const ciscos = new CiscosAdventureRpg(this, 'CiscosAdventureRpg', { vpc });
+
+    const allthemods10 = new AllTheMods10(this, 'AllTheMods10', { vpc });
 
     // Optional DLM backups
     if (props.enableDlmBackups ?? true) {
       new MinecraftDlmBackups(this, 'DlmBackups', {
         tagKey: DLM_TAG_KEY,
         tagValue: DLM_TAG_VALUE,
-        retentionCount: 7,
+        retentionCount: 3,
       });
     }
-
-    // Create Fleet Manager API
-    // const fleetApi = new MinecraftFleetManagerApi(this, 'FleetManagerApi', {
-    //   servers: [
-    //     {
-    //       id: 'dungeons-and-colonies-rpg',
-    //       instance: dungeonsServer.instance,
-    //       dataDeviceName: dungeonsServer.dataDeviceName,
-    //     },
-    //   ],
-    // });
-
-
-    new cdk.CfnOutput(this, 'CiscosAdventureRpgEIP', {
-      value: ciscos.eip?.ref ?? ciscos.instance.instancePublicDnsName,
-      description: 'Ciscos Adventure RPG server address',
-    });
-
-    // new cdk.CfnOutput(this, 'FleetApiBase', {
-    //   value: fleetApi.apiUrl,
-    //   description: 'Fleet Manager API base URL',
-    // });
-
-    // new cdk.CfnOutput(this, 'FleetApiToken', {
-    //   value: fleetApi.token,
-    //   description: 'Fleet Manager API authentication token',
-    // });
   }
 }
